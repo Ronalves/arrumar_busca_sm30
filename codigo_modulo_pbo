@@ -1,0 +1,127 @@
+*----------------------------------------------------------------------*
+***INCLUDE LZTBFI833O01 .
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Module  ZPOSICIONAR  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE zposicionar OUTPUT.
+
+  DATA:tg_sval_tab TYPE zsvaltab,
+       wg_sval_tab TYPE sval,
+       tg_ztbfi833 TYPE STANDARD TABLE OF ztbfi833,
+       wg_ztbfi833 TYPE ztbfi833,
+       r_classif   TYPE RANGE OF ztbfi833-classif,
+       r_empresa   TYPE RANGE OF ztbfi833-empresa,
+       r_conta     TYPE RANGE OF ztbfi833-conta,
+       r_descricao TYPE RANGE OF ztbfi833-descricao,
+       r_sinal     TYPE RANGE OF ztbfi833-sinal,
+       r_codigo    TYPE RANGE OF ztbfi833-codigo,
+       s_classif   LIKE LINE OF r_classif,
+       s_empresa   LIKE LINE OF r_empresa,
+       s_conta     LIKE LINE OF r_conta,
+       s_descricao LIKE LINE OF r_descricao,
+       s_sinal     LIKE LINE OF r_sinal,
+       s_codigo    LIKE LINE OF r_codigo.
+
+  CONSTANTS:c_eq(2)  TYPE c VALUE 'EQ',
+            c_i(1)   TYPE c VALUE 'I'.
+
+  FIELD-SYMBOLS:<lfs_xfrom> TYPE x,
+                <lfs_xto>   TYPE x.
+
+  IF sy-ucomm = 'FURT'.
+
+    CLEAR:r_classif[],r_empresa[],r_conta[],r_descricao[],r_sinal[],r_codigo[],
+    s_classif,s_empresa,s_conta,s_descricao,s_sinal,s_codigo,tg_sval_tab[].
+
+    IMPORT tg_sval_tab TO tg_sval_tab FROM MEMORY ID 'TG_SVAL_TAB'.
+
+    FREE MEMORY ID 'TG_SVAL_TAB'.
+
+    IF  tg_sval_tab[] IS NOT INITIAL.
+
+      LOOP AT tg_sval_tab INTO wg_sval_tab.
+
+        CASE wg_sval_tab-fieldname.
+          WHEN 'CLASSIF'.
+            IF wg_sval_tab-value IS NOT INITIAL.
+              CLEAR:s_classif.
+              s_classif-low    = wg_sval_tab-value.
+              s_classif-option = c_eq.
+              s_classif-sign   = c_i.
+              APPEND s_classif TO r_classif.
+            ENDIF.
+          WHEN 'EMPRESA'.
+            IF wg_sval_tab-value IS NOT INITIAL.
+              CLEAR:s_empresa.
+              s_empresa-low    = wg_sval_tab-value.
+              s_empresa-option = c_eq.
+              s_empresa-sign   = c_i.
+              APPEND s_empresa TO r_empresa.
+            ENDIF.
+          WHEN 'CONTA'.
+            IF wg_sval_tab-value IS NOT INITIAL.
+              CLEAR:s_conta.
+              s_conta-low    = wg_sval_tab-value.
+              s_conta-option = c_eq.
+              s_conta-sign   = c_i.
+              APPEND s_conta TO r_conta.
+            ENDIF.
+          WHEN 'DESCRICAO'.
+            IF wg_sval_tab-value IS NOT INITIAL.
+              CLEAR:s_descricao.
+              s_descricao-low    = wg_sval_tab-value.
+              s_descricao-option = c_eq.
+              s_descricao-sign   = c_i.
+              APPEND s_descricao TO r_descricao.
+            ENDIF.
+          WHEN 'SINAL'.
+            IF wg_sval_tab-value IS NOT INITIAL.
+              CLEAR:s_sinal.
+              s_sinal-low    = wg_sval_tab-value.
+              s_sinal-option = c_eq.
+              s_sinal-sign   = c_i.
+              APPEND s_sinal TO r_sinal.
+            ENDIF.
+          WHEN 'CODIGO'.
+            IF wg_sval_tab-value IS NOT INITIAL.
+              CLEAR:s_codigo.
+              s_codigo-low    = wg_sval_tab-value.
+              s_codigo-option = c_eq.
+              s_codigo-sign   = c_i.
+              APPEND s_codigo TO r_codigo.
+            ENDIF.
+        ENDCASE.
+
+      ENDLOOP.
+
+      LOOP AT extract.
+
+        APPEND INITIAL LINE TO tg_ztbfi833 ASSIGNING <lfs_xto> CASTING.
+        ASSIGN extract TO <lfs_xfrom> CASTING.
+
+        <lfs_xto> = <lfs_xfrom>.
+
+      ENDLOOP.
+
+      LOOP AT tg_ztbfi833 INTO wg_ztbfi833 WHERE classif   IN r_classif
+                                             AND empresa   IN r_empresa
+                                             AND conta     IN r_conta
+                                             AND descricao IN r_descricao
+                                             AND sinal     IN r_sinal
+                                             AND codigo    IN r_codigo.
+
+        nextline = sy-tabix.
+        EXIT.
+
+      ENDLOOP.
+
+      tctrl_ztbfi833-top_line = nextline.
+
+    ENDIF.
+
+  ENDIF.
+
+ENDMODULE.                 " ZPOSICIONAR  OUTPUT
